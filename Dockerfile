@@ -1,22 +1,30 @@
-# Use Node.js for building the Angular app
-FROM node:20 AS build
-
+# مرحله ساخت برنامه Angular
+FROM node:18 AS build
 WORKDIR /app
 
+# کپی فایل‌های مربوط به وابستگی‌ها
 COPY package*.json ./
-RUN npm install
 
+# نصب پکیج‌ها با استفاده از --legacy-peer-deps
+RUN npm install --legacy-peer-deps
+
+# کپی تمام فایل‌های پروژه به داخل کانتینر
 COPY . .
-RUN npm run build --prod
 
-# Use Nginx to serve the Angular app
+# ساخت برنامه با استفاده از ng build در حالت production
+RUN npx ng build --configuration production
+
+# مرحله نهایی: سرویس‌دهی با Nginx
 FROM nginx:latest
 
-# Copy built Angular files to Nginx's default directory
-COPY --from=build /app/dist/* /usr/share/nginx/html
+# کپی خروجی build از مرحله قبل به دایرکتوری پیش‌فرض Nginx
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Expose the port Nginx runs on
+# کپی فایل تنظیمات Nginx (اطمینان حاصل کنید که فایل nginx.conf در مسیر پروژه وجود دارد)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# باز کردن پورت 80
 EXPOSE 80
 
-# Start Nginx
+# اجرای Nginx در حالت foreground
 CMD ["nginx", "-g", "daemon off;"]
