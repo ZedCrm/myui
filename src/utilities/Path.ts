@@ -1,1 +1,1 @@
-export const Domain = "http://heresh.runasp.net";
+export const Domain = "http://localhost:90";
